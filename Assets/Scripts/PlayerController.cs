@@ -11,7 +11,7 @@ public class PlayerController : MonoBehaviour
     public float rotationAmount = 50f, yawLimit = 30f, minLiftMultiplier, maxLiftMultiplier, liftIncrement, timeInterval;
     public LiftBar liftBar;
     GAME gameState = GAME.STOP;
-    enum GAME //Game state enum to keep workflow accordingly
+    public enum GAME //Game state enum to keep workflow accordingly
     {
         START,
         STOP,
@@ -52,7 +52,7 @@ public class PlayerController : MonoBehaviour
         transform.GetChild(0).Rotate(0, 0, 1000 * Time.deltaTime) ;
         transform.GetChild(1).Rotate(0, 0, 2000 * Time.deltaTime);
     }
-    private void FixedUpdate() //To apply forces on the rigidbody in specific time preiod fixed update is used.
+    private void FixedUpdate() //To apply forces on the rigidbody in specific time period fixed update is used.
     {
         //print(rb.velocity.magnitude);
         if (CheckGameState() == GAME.START)
@@ -62,9 +62,13 @@ public class PlayerController : MonoBehaviour
             CalculateForces();
         }
     }
-    private GAME CheckGameState()
+    protected GAME CheckGameState()
     {
         return gameState;
+    }
+    public void SetGameState(GAME g)
+    {
+        gameState = g;
     }
     void ReadInput()
     {

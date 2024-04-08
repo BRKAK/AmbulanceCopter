@@ -10,6 +10,7 @@ public class MenuHandler : MonoBehaviour
     public GameObject uiInterface;
     public PlayerController player;
     public float timeScaleDelay = .5f;
+    private bool innerMenuDisplayed = false;
     // Start is called before the first frame update
     void Start()
     {
@@ -20,46 +21,64 @@ public class MenuHandler : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        readInput();
+        ReadInput();
     }
 
-    void readInput()
+    private void ReadInput()
     {
-        if (Input.GetKeyDown(KeyCode.Escape))
+        if (!innerMenuDisplayed)
         {
-            menuOn = !menuOn;
-            if (menuOn)
+            if (Input.GetKeyDown(KeyCode.Escape))
             {
-                Time.timeScale = 0;
-                player.SetGameState(PlayerController.GAME.STOP);
-                uiInterface.SetActive(true);
-            }
-            else
-            {
-                OnResumeBtnClicked();
-                return;
+                menuOn = !menuOn;
+                if (menuOn)
+                {
+                    player.SetScriptTimeInterval(0);
+                    IsGameOver();
+                    uiInterface.SetActive(true);
+                }
+                else
+                {
+                    OnResumeBtnClicked();
+                    return;
+                }
             }
         }
     }
 
+    public void SetInnerMenuIsDisplayed(bool flag) //Sets whether the inner menu is displayed or not
+    {
+        innerMenuDisplayed = flag;
+    }
+
     public void OnSettingsBtnClicked()
     {
+        innerMenuDisplayed = true;
         uiInterface.SetActive(false);
         settings.SetActive(true);
 
     }
 
+    private void IsGameOver()
+    {
+        if (player.CheckGameState() != PlayerController.GAME.OVER)
+        {
+            player.SetGameState(PlayerController.GAME.START);
+
+        }
+    }
+
     public void OnResumeBtnClicked()
     {
-        player.SetGameState(PlayerController.GAME.START);
+        IsGameOver();
         uiInterface.SetActive(false);
         menuOn = false;
-        Time.timeScale = .5f;
+        player.SetScriptTimeInterval(0.5f);
         StartCoroutine(IncreaseTimeScale(timeScaleDelay));
     }
     private IEnumerator IncreaseTimeScale(float delay)
     {
         yield return new WaitForSeconds(delay);
-        Time.timeScale = 1;
+        player.SetScriptTimeInterval(1f);
     }
 }

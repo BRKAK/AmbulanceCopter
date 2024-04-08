@@ -95,7 +95,6 @@ GameObject:
   - component: {fileID: 4693244869425500087}
   - component: {fileID: 1875644095833552668}
   - component: {fileID: 5014073987591150175}
-  - component: {fileID: 844377704}
   m_Layer: 0
   m_Name: Blades
   m_TagString: Untagged
@@ -178,20 +177,8 @@ MeshCollider:
   m_Enabled: 1
   serializedVersion: 4
   m_Convex: 1
-  m_CookingOptions: 30
+  m_CookingOptions: -1
   m_Mesh: {fileID: -7387706064836869012, guid: 7a72ac495a5675f40abdba4177e3b921, type: 3}
---- !u!114 &844377704
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1009104065462353557}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 616b70675860c344e8843a8581630941, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &5377131408253669798
 GameObject:
   m_ObjectHideFlags: 0
@@ -405,8 +392,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rotationAmount: 20
   yawLimit: 20
-  minLift: 9
-  maxLift: 11
+  minLiftMultiplier: 2
+  maxLiftMultiplier: 3
+  liftIncrement: 0.5
+  timeInterval: 0.3
   liftBar: {fileID: 0}
 --- !u!54 &4572197859681945151
 Rigidbody:
@@ -416,9 +405,9 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8423748693840650999}
   serializedVersion: 2
-  m_Mass: 20
-  m_Drag: 1
-  m_AngularDrag: 0.05
+  m_Mass: 2
+  m_Drag: 0.1
+  m_AngularDrag: 0.1
   m_UseGravity: 1
   m_IsKinematic: 0
   m_Interpolate: 1
@@ -431,9 +420,9 @@ BoxCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8423748693840650999}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: fb8689747918b5441a2c90201583b6a5, type: 2}
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 3.9771905, y: 1.1876886, z: 1.2181215}
-  m_Center: {x: 1.0061214, y: 0.5867777, z: -0.10906124}
+  m_Size: {x: 2.0139883, y: 0.8744711, z: 0.7538887}
+  m_Center: {x: 0.024520993, y: 0.41610244, z: 0.0072034}

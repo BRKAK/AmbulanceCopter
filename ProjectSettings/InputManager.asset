@@ -22,7 +22,7 @@ InputManager:
     axis: 0
     joyNum: 0
   - serializedVersion: 3
-    m_Name: AOT
+    m_Name: AOA
     descriptiveName: Helicopter's Angle of Attack
     descriptiveNegativeName: 
     negativeButton: down

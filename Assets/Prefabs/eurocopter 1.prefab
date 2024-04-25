@@ -191,7 +191,7 @@ GameObject:
   - component: {fileID: 3629389532257789923}
   - component: {fileID: 2005747412976855417}
   m_Layer: 0
-  m_Name: Rotor
+  m_Name: MiniBlades
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -390,6 +390,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9bad0b91e4bdf9d4eb79784a6ad86d13, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  blades: {fileID: 1009104065462353557}
+  miniBlades: {fileID: 5377131408253669798}
   rotationAmount: 20
   yawLimit: 20
   minLiftMultiplier: 2

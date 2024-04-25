@@ -1,13 +1,21 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class PlayerController : MonoBehaviour
 {
+    private Vector3 startingPosition, startingRotation, bladesStartingLocalPosition;
+    public GameObject blades, miniBlades;
     private int childCount;
     Rigidbody rb;
-    private float weight, minLift, maxLift, AOAInput, horizontalMotionInput, yawInput, liftForce, timer, bladeRotationSpeed = 1f; //Helicopter variables
-    private float scriptTimeInterval = 1, fixedScriptTime, scriptTime; //Script time variables
+    private float weight, minLift, maxLift, AOAInput, horizontalMotionInput, yawInput, liftForce, timer, bladeRotationSpeed = 1f, //Helicopter variables
+
+        lastActiveFrameSpeed;
+    Vector3 lastActiveFrameVelocity; //Velocity and heading data is saved when the game is paused to keep momentum at the end of the pause.
+
+
+    private float scriptTimeInterval = 1, fixedScriptTime, scriptTime, fixedScriptDeltaTime; //Script time variables
     private bool wKeyDown = false, sKeyDown = false, bladeHit = false;
     public float rotationAmount = 50f, yawLimit = 30f, minLiftMultiplier, maxLiftMultiplier, liftIncrement, timeInterval; //Variables that are to be changed from the editor
     public LiftBar liftBar; //Canvas object to represent the lift power to the user
@@ -23,12 +31,15 @@ public class PlayerController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        bladesStartingLocalPosition = blades.transform.localPosition;
+        startingPosition = transform.position;
         Initialize();
     }
 
     // Update is called once per frame
     void Update()
     {
+        Debug.Log(CheckGameState());
         AdjustScriptTime();
         if (bladeHit)
             bladeRotationSpeed = Mathf.Lerp(bladeRotationSpeed, 0, 0.001f);
@@ -36,6 +47,13 @@ public class PlayerController : MonoBehaviour
         if (CheckGameState() == GAME.START)
         {
             ReadInput();
+        }
+        if (CheckGameState() == GAME.OVER)
+        {
+            if (Input.GetKeyDown(KeyCode.R))
+            {
+                ResetGame();
+            }
         }
     }
     void Initialize()   //Rigidbody, physics calculation and interface canvas(liftBar) initializitaion
@@ -50,12 +68,20 @@ public class PlayerController : MonoBehaviour
         liftBar.setMinValue(minLift);
         childCount = transform.childCount;
         liftForce = minLift;
+
         SetGameState(GAME.START);
     }
+
+    void ResetGame()//Restarts the game
+    {
+        SetGameState(GAME.RESTART);
+        SceneManager.LoadScene("Playground");
+    }
+
     void Animate() //Just a little rotation animation as cosmetics.
     {
-        transform.GetChild(0).Rotate(0, 0, 1000 * scriptTime * bladeRotationSpeed);
-        transform.GetChild(1).Rotate(0, 0, 2000 * scriptTime * bladeRotationSpeed);
+        blades.transform.Rotate(0, 0, 1500 * scriptTime * bladeRotationSpeed);
+        miniBlades.transform.Rotate(0, 0, 1000 * scriptTime * bladeRotationSpeed);
     }
     private void FixedUpdate() //To apply forces on the rigidbody in specific time period fixed update is used.
     {
@@ -79,18 +105,19 @@ public class PlayerController : MonoBehaviour
         else
         {
             rb.isKinematic = false;
-            ChangeBladeAttribute(false);            
+            ChangeBladeAttribute(false);
         }
         scriptTime = Time.deltaTime * scriptTimeInterval;
         fixedScriptTime = Time.fixedTime * scriptTimeInterval;
+        fixedScriptDeltaTime = Time.fixedDeltaTime * scriptTimeInterval;
     }
 
     public void ChangeBladeAttribute(bool flag) //alters the kinematic option depending on the frame(does user see game or UI)
     {
         Rigidbody childRb;
-        if (transform.GetChild(1).name.ToLower() == "blades")
+        if (blades.name.ToLower() == "blades")
         {
-            if (transform.GetChild(1).TryGetComponent<Rigidbody>(out childRb))
+            if (blades.TryGetComponent<Rigidbody>(out childRb))
             {
                 childRb.isKinematic = flag;
                 CheckBladeVelocityForBladeRotation(childRb);
@@ -162,13 +189,14 @@ public class PlayerController : MonoBehaviour
             timer = fixedScriptTime;
             liftBar.SetValue(liftForce);
         }
-        else if(sKeyDown && wKeyDown)
+        else if (sKeyDown && wKeyDown)
         {
             timer = fixedScriptTime;
         }
     }
     void CalculateForces()
     {
+        lastActiveFrameVelocity = rb.velocity;
         rb.AddRelativeForce(Vector3.up * liftForce, ForceMode.Force);
     }
     private void OnCollisionEnter(Collision collision)
@@ -179,7 +207,7 @@ public class PlayerController : MonoBehaviour
             Debug.Log("Crash");
         }
         rb.freezeRotation = false;
-        
+
     }
     private void OnCollisionStay(Collision collision)
     {
@@ -197,10 +225,15 @@ public class PlayerController : MonoBehaviour
         gameState = GAME.OVER;
         if (childCount == transform.childCount)
         {
-            GameObject a = transform.GetChild(1).gameObject;
+            GameObject a = blades.gameObject;
             if (a.name.ToLower() == "blades"/* || a.name.ToLower() == "rotor"*/)
             {
-                Rigidbody crb = a.AddComponent<Rigidbody>();
+                Rigidbody crb;
+                if (!a.TryGetComponent<Rigidbody>(out crb))
+                {
+                    crb = a.AddComponent<Rigidbody>();
+                }
+
                 crb.useGravity = true;
                 crb.AddForce(Random.Range(-5, 5), Random.Range(5, 10), Random.Range(-5, 5), ForceMode.Impulse);
                 if (a.GetComponent<MeshCollider>() == null)

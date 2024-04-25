@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class MenuHandler : MonoBehaviour
 {
@@ -51,6 +52,11 @@ public class MenuHandler : MonoBehaviour
         innerMenuDisplayed = flag;
     }
 
+    public void OnRestartBtnClicked()
+    {
+        SceneManager.LoadScene("Playground");
+    }
+
     public void OnSettingsBtnClicked()
     {
         innerMenuDisplayed = true;
@@ -79,6 +85,7 @@ public class MenuHandler : MonoBehaviour
     private IEnumerator IncreaseTimeScale(float delay)
     {
         yield return new WaitForSeconds(delay);
-        player.SetScriptTimeInterval(1f);
+        if (!menuOn)
+            player.SetScriptTimeInterval(1f);
     }
 }

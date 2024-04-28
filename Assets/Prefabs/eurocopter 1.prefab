@@ -353,9 +353,10 @@ GameObject:
   - component: {fileID: 5951153128292474661}
   - component: {fileID: 4572197859681945151}
   - component: {fileID: 4572197859681945152}
+  - component: {fileID: 42876988}
   m_Layer: 0
   m_Name: eurocopter 1
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -428,3 +429,18 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 2.0139883, y: 0.8744711, z: 0.7538887}
   m_Center: {x: 0.024520993, y: 0.41610244, z: 0.0072034}
+--- !u!114 &42876988
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8423748693840650999}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0c71a284f0ad2c54b82602b83c03a58e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  missionTime: 0:40
+  SFXhandler: {fileID: 0}
+  musicMilestone: 2000000010000000

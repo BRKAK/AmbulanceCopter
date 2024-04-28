@@ -6,11 +6,13 @@ using UnityEngine.SceneManagement;
 
 public class MenuHandler : MonoBehaviour
 {
-    private bool menuOn = false;
     public GameObject settings;
     public GameObject uiInterface;
     public PlayerController player;
     public float timeScaleDelay = .5f;
+    public MissionHandler missionHandler;
+
+    private bool menuOn = false;
     private bool innerMenuDisplayed = false;
     // Start is called before the first frame update
     void Start()
@@ -23,28 +25,31 @@ public class MenuHandler : MonoBehaviour
     void Update()
     {
         ReadInput();
+        //Debug.LogWarning(player == null);
     }
 
     private void ReadInput()
     {
-        if (!innerMenuDisplayed)
-        {
-            if (Input.GetKeyDown(KeyCode.Escape))
+        if(player.CheckGameState() != PlayerController.GAME.ERROR)
+            if (!innerMenuDisplayed)
             {
-                menuOn = !menuOn;
-                if (menuOn)
+                if (Input.GetKeyDown(KeyCode.Escape))
                 {
-                    player.SetScriptTimeInterval(0);
-                    IsGameOver();
-                    uiInterface.SetActive(true);
-                }
-                else
-                {
-                    OnResumeBtnClicked();
-                    return;
+                    menuOn = !menuOn;
+                    if (menuOn)
+                    {
+                        player.SetScriptTimeInterval(0);
+                        IsGameOver();
+                        player.SetGameState(PlayerController.GAME.STOP);
+                        uiInterface.SetActive(true);
+                    }
+                    else
+                    {
+                        OnResumeBtnClicked();
+                        return;
+                    }
                 }
             }
-        }
     }
 
     public void SetInnerMenuIsDisplayed(bool flag) //Sets whether the inner menu is displayed or not
@@ -54,7 +59,10 @@ public class MenuHandler : MonoBehaviour
 
     public void OnRestartBtnClicked()
     {
+        player.SetGameState(PlayerController.GAME.RESTART);
+        missionHandler.Initialize();
         SceneManager.LoadScene("Playground");
+        Debug.Log("Time.time at restart: " + Time.time);
     }
 
     public void OnSettingsBtnClicked()
@@ -80,6 +88,7 @@ public class MenuHandler : MonoBehaviour
         uiInterface.SetActive(false);
         menuOn = false;
         player.SetScriptTimeInterval(0.5f);
+        player.SetGameState(PlayerController.GAME.START);
         StartCoroutine(IncreaseTimeScale(timeScaleDelay));
     }
     private IEnumerator IncreaseTimeScale(float delay)
@@ -87,5 +96,10 @@ public class MenuHandler : MonoBehaviour
         yield return new WaitForSeconds(delay);
         if (!menuOn)
             player.SetScriptTimeInterval(1f);
+    }
+
+    public bool IsMenuOn()
+    {
+        return menuOn;
     }
 }

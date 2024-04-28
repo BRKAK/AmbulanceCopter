@@ -10,6 +10,7 @@ public class SettingsMenuHandler : MonoBehaviour
     public MenuHandler menuHandlerScript;
     public GameObject menu, brightness;
     public GameObject uiInterface;
+    public AudioSource audioSource;
     private PostProcessVolume volume;
     private AutoExposure _ae;
     // Start is called before the first frame update
@@ -36,6 +37,12 @@ public class SettingsMenuHandler : MonoBehaviour
         uiInterface.SetActive(false);
         menu.SetActive(true);
         menuHandlerScript.SetInnerMenuIsDisplayed(false);
+    }
+
+    public void ChangeVolume()
+    {
+        float sliderVal = transform.GetChild(0).GetChild(2).GetComponent<Slider>().value;
+        audioSource.volume = sliderVal;
     }
 
     public void ChangeBrightness()

@@ -20,13 +20,15 @@ public class PlayerController : MonoBehaviour
     public float rotationAmount = 50f, yawLimit = 30f, minLiftMultiplier, maxLiftMultiplier, liftIncrement, timeInterval; //Variables that are to be changed from the editor
     public LiftBar liftBar; //Canvas object to represent the lift power to the user
     GAME gameState = GAME.INIT;
+    public MissionHandler missionHandler;
     public enum GAME //Game state enum to keep workflow accordingly
     {
         INIT, //initialization phase
         START, //start phase
         STOP, //stop - menu etc
         RESTART, //reset
-        OVER //state between over and init
+        OVER, //state between over and init
+        ERROR //there is a problem with the inputs in editor
     }
     // Start is called before the first frame update
     void Start()
@@ -39,21 +41,23 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        Debug.Log(CheckGameState());
+        //Debug.Log(CheckGameState());
         AdjustScriptTime();
         if (bladeHit)
             bladeRotationSpeed = Mathf.Lerp(bladeRotationSpeed, 0, 0.001f);
-        Animate();
-        if (CheckGameState() == GAME.START)
-        {
-            ReadInput();
-        }
         if (CheckGameState() == GAME.OVER)
         {
             if (Input.GetKeyDown(KeyCode.R))
             {
+                SetGameState(GAME.RESTART);
                 ResetGame();
             }
+            return;
+        }
+        Animate();
+        if (CheckGameState() == GAME.START)
+        {
+            ReadInput();
         }
     }
     void Initialize()   //Rigidbody, physics calculation and interface canvas(liftBar) initializitaion
@@ -68,8 +72,9 @@ public class PlayerController : MonoBehaviour
         liftBar.setMinValue(minLift);
         childCount = transform.childCount;
         liftForce = minLift;
-
         SetGameState(GAME.START);
+
+        missionHandler.Initialize();
     }
 
     void ResetGame()//Restarts the game

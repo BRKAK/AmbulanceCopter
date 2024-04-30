@@ -6,19 +6,16 @@ using UnityEngine.SceneManagement;
 
 public class MenuHandler : MonoBehaviour
 {
-    public GameObject settings;
     public GameObject uiInterface;
     public PlayerController player;
     public float timeScaleDelay = .5f;
     public MissionHandler missionHandler;
 
     private bool menuOn = false;
-    private bool innerMenuDisplayed = false;
     // Start is called before the first frame update
     void Start()
     {
         uiInterface.SetActive(false);
-        settings.SetActive(false);
     }
 
     // Update is called once per frame
@@ -30,67 +27,68 @@ public class MenuHandler : MonoBehaviour
 
     private void ReadInput()
     {
-        if(player.CheckGameState() != PlayerController.GAME.ERROR)
-            if (!innerMenuDisplayed)
+        if (player.CheckGameState() != PlayerController.GAME.ERROR && player.CheckGameState() != PlayerController.GAME.OVER)
+        {
+            if (Input.GetKeyDown(KeyCode.Escape))
             {
-                if (Input.GetKeyDown(KeyCode.Escape))
+                menuOn = !menuOn;
+                if (IsMenuOn())
                 {
-                    menuOn = !menuOn;
-                    if (menuOn)
-                    {
-                        player.SetScriptTimeInterval(0);
-                        IsGameOver();
-                        player.SetGameState(PlayerController.GAME.STOP);
-                        uiInterface.SetActive(true);
-                    }
-                    else
-                    {
-                        OnResumeBtnClicked();
-                        return;
-                    }
+                    Time.timeScale = 0;
+                    IsGameOver();
+                    player.SetGameState(PlayerController.GAME.STOP);
+                    uiInterface.SetActive(true);
+                }
+                else
+                {
+                    OnResumeBtnClicked();
+                    return;
                 }
             }
-    }
-
-    public void SetInnerMenuIsDisplayed(bool flag) //Sets whether the inner menu is displayed or not
-    {
-        innerMenuDisplayed = flag;
+        }
+        if (player.CheckGameState() == PlayerController.GAME.OVER)
+        {
+            transform.GetChild(0).gameObject.transform.GetChild(0).gameObject.SetActive(false);
+            Canvas.ForceUpdateCanvases();
+            uiInterface.SetActive(true);
+            menuOn = true;
+        }
     }
 
     public void OnRestartBtnClicked()
     {
         player.SetGameState(PlayerController.GAME.RESTART);
         missionHandler.Initialize();
-        SceneManager.LoadScene("Playground");
-        Debug.Log("Time.time at restart: " + Time.time);
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name, LoadSceneMode.Single);
+        DebugWarning("Time.time at restart: " + Time.time);
+        Time.timeScale = 1;
     }
 
-    public void OnSettingsBtnClicked()
+    private bool IsGameOver()
     {
-        innerMenuDisplayed = true;
-        uiInterface.SetActive(false);
-        settings.SetActive(true);
-
-    }
-
-    private void IsGameOver()
-    {
-        if (player.CheckGameState() != PlayerController.GAME.OVER)
+        if (player.CheckGameState() == PlayerController.GAME.OVER || player.CheckGameState() == PlayerController.GAME.ERROR)
         {
-            player.SetGameState(PlayerController.GAME.START);
-
+            return true;
         }
+        player.SetGameState(PlayerController.GAME.PLAYING);
+        return false;
     }
 
     public void OnResumeBtnClicked()
     {
-        IsGameOver();
+        if(!IsGameOver())
+            Time.timeScale = 1;
         uiInterface.SetActive(false);
         menuOn = false;
         player.SetScriptTimeInterval(0.5f);
-        player.SetGameState(PlayerController.GAME.START);
         StartCoroutine(IncreaseTimeScale(timeScaleDelay));
     }
+
+    public void OnMainMenuBtnClicked()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex - 1, LoadSceneMode.Single);
+    }
+
     private IEnumerator IncreaseTimeScale(float delay)
     {
         yield return new WaitForSeconds(delay);
@@ -101,5 +99,12 @@ public class MenuHandler : MonoBehaviour
     public bool IsMenuOn()
     {
         return menuOn;
+    }
+
+
+    //DEBUG
+    private void DebugWarning(string msg)
+    {
+        Debug.LogWarning("MenuHandler::" + msg);
     }
 }

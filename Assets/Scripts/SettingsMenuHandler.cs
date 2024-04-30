@@ -7,10 +7,10 @@ using UnityEngine.Rendering.PostProcessing;
 
 public class SettingsMenuHandler : MonoBehaviour
 {
-    public MenuHandler menuHandlerScript;
-    public GameObject menu, brightness;
-    public GameObject uiInterface;
+    public GameObject brightness;
     public AudioSource audioSource;
+    public MainMenuHandler mainMenuHandler;
+
     private PostProcessVolume volume;
     private AutoExposure _ae;
     // Start is called before the first frame update
@@ -23,7 +23,7 @@ public class SettingsMenuHandler : MonoBehaviour
     void Update()
     {
         //Debug.Log("Active: " + uiInterface.activeInHierarchy);
-        if (uiInterface.activeInHierarchy)
+        if (gameObject.activeInHierarchy)
         {
             if (Input.GetKeyDown(KeyCode.Escape))
             {
@@ -34,9 +34,9 @@ public class SettingsMenuHandler : MonoBehaviour
 
     public void OnBackBtnClicked()
     {
-        uiInterface.SetActive(false);
-        menu.SetActive(true);
-        menuHandlerScript.SetInnerMenuIsDisplayed(false);
+        mainMenuHandler.gameObject.SetActive(true);
+        gameObject.SetActive(false);
+        //gameObject.SetActive(false);
     }
 
     public void ChangeVolume()

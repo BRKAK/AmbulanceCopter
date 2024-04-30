@@ -5,66 +5,82 @@ using UnityEngine.SceneManagement;
 
 public class PlayerController : MonoBehaviour
 {
-    private Vector3 startingPosition, startingRotation, bladesStartingLocalPosition;
     public GameObject blades, miniBlades;
-    private int childCount;
-    Rigidbody rb;
-    private float weight, minLift, maxLift, AOAInput, horizontalMotionInput, yawInput, liftForce, timer, bladeRotationSpeed = 1f, //Helicopter variables
-
-        lastActiveFrameSpeed;
-    Vector3 lastActiveFrameVelocity; //Velocity and heading data is saved when the game is paused to keep momentum at the end of the pause.
-
-
-    private float scriptTimeInterval = 1, fixedScriptTime, scriptTime, fixedScriptDeltaTime; //Script time variables
-    private bool wKeyDown = false, sKeyDown = false, bladeHit = false;
-    public float rotationAmount = 50f, yawLimit = 30f, minLiftMultiplier, maxLiftMultiplier, liftIncrement, timeInterval; //Variables that are to be changed from the editor
+    public float rotationAmount = 50f, yawLimit = 30f, minLiftMultiplier, maxLiftMultiplier, liftIncrement, inputTimeInterval; //Variables that are to be changed from the editor
     public LiftBar liftBar; //Canvas object to represent the lift power to the user
-    GAME gameState = GAME.INIT;
     public MissionHandler missionHandler;
+
+
+    Rigidbody rb;
+    private float weight, minLift, maxLift, AOAInput, horizontalMotionInput, yawInput, liftForce, timer, bladeRotationSpeed = 1f; //Helicopter variables
+    private float fixedScriptTime, scriptTime, scriptTimeInterval; //Script time variables
+    private bool wKeyDown = false, sKeyDown = false, bladeHit = false;
+    private int childCount;
+    GAME gameState = GAME.INIT;
     public enum GAME //Game state enum to keep workflow accordingly
     {
         INIT, //initialization phase
         START, //start phase
         STOP, //stop - menu etc
+        PLAYING, //playing phase
         RESTART, //reset
         OVER, //state between over and init
         ERROR //there is a problem with the inputs in editor
     }
+
+    private void Awake()
+    {
+        SetGameState(GAME.INIT);
+        Debug.LogWarning("Game State: " + gameState);
+    }
+
     // Start is called before the first frame update
     void Start()
     {
-        bladesStartingLocalPosition = blades.transform.localPosition;
-        startingPosition = transform.position;
-        Initialize();
+        if (CheckGameState() == GAME.INIT)
+        {
+            SetGameState(GAME.START);
+            Initialize();
+        }
     }
 
     // Update is called once per frame
     void Update()
     {
         //Debug.Log(CheckGameState());
-        AdjustScriptTime();
         if (bladeHit)
             bladeRotationSpeed = Mathf.Lerp(bladeRotationSpeed, 0, 0.001f);
-        if (CheckGameState() == GAME.OVER)
+        GameStateHandler();
+    }
+
+    public void GameStateHandler()
+    {
+        AdjustScriptTime();
+        Animate();
+        if (CheckGameState() == GAME.PLAYING)
+        {
+            ReadInput();
+        }
+        else if (CheckGameState() == GAME.OVER)
         {
             if (Input.GetKeyDown(KeyCode.R))
             {
                 SetGameState(GAME.RESTART);
                 ResetGame();
             }
-            return;
-        }
-        Animate();
-        if (CheckGameState() == GAME.START)
+        }else if (CheckGameState() == GAME.RESTART)
         {
-            ReadInput();
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name, LoadSceneMode.Single);
+            Time.timeScale = 1;
         }
+
     }
+
     void Initialize()   //Rigidbody, physics calculation and interface canvas(liftBar) initializitaion
     {
         rb = transform.GetComponent<Rigidbody>();
         weight = rb.mass * Physics.gravity.magnitude;
-        print(weight);
+        DebugWarning("Weight: " + weight);
         minLift = weight - minLiftMultiplier;
         maxLift = weight + maxLiftMultiplier;
         liftBar.SetValue(minLift);
@@ -72,15 +88,20 @@ public class PlayerController : MonoBehaviour
         liftBar.setMinValue(minLift);
         childCount = transform.childCount;
         liftForce = minLift;
-        SetGameState(GAME.START);
+        SetScriptTimeInterval(1f);
+        DebugWarning("Script Time: " + scriptTime);
+        SetGameState(GAME.PLAYING);
+    }
 
-        missionHandler.Initialize();
+    public void AdjustScriptTime() //to stop all the motion and physics calculation while not touching the Time.timeScale to display UI changes on frames such as brightness.
+    {
+        scriptTime = Time.deltaTime * scriptTimeInterval;
+        fixedScriptTime = Time.fixedTime * scriptTimeInterval;
     }
 
     void ResetGame()//Restarts the game
     {
         SetGameState(GAME.RESTART);
-        SceneManager.LoadScene("Playground");
     }
 
     void Animate() //Just a little rotation animation as cosmetics.
@@ -90,7 +111,7 @@ public class PlayerController : MonoBehaviour
     }
     private void FixedUpdate() //To apply forces on the rigidbody in specific time period fixed update is used.
     {
-        if (CheckGameState() == GAME.START)
+        if (CheckGameState() == GAME.PLAYING)
         {
             CalculateForces();
         }
@@ -100,29 +121,11 @@ public class PlayerController : MonoBehaviour
         return gameState;
     }
 
-    public void AdjustScriptTime() //to stop all the motion and physics calculation while not touching the Time.timeScale to display UI changes on frames such as brightness.
-    {
-        if (scriptTimeInterval == 0)
-        {
-            rb.isKinematic = true;
-            ChangeBladeAttribute(true);
-        }
-        else
-        {
-            rb.isKinematic = false;
-            ChangeBladeAttribute(false);
-        }
-        scriptTime = Time.deltaTime * scriptTimeInterval;
-        fixedScriptTime = Time.fixedTime * scriptTimeInterval;
-        fixedScriptDeltaTime = Time.fixedDeltaTime * scriptTimeInterval;
-    }
-
     public void ChangeBladeAttribute(bool flag) //alters the kinematic option depending on the frame(does user see game or UI)
     {
-        Rigidbody childRb;
         if (blades.name.ToLower() == "blades")
         {
-            if (blades.TryGetComponent<Rigidbody>(out childRb))
+            if (blades.TryGetComponent<Rigidbody>(out Rigidbody childRb))
             {
                 childRb.isKinematic = flag;
                 CheckBladeVelocityForBladeRotation(childRb);
@@ -150,7 +153,7 @@ public class PlayerController : MonoBehaviour
         Debug.Log("Horizontal: " + horizontalMotionInput);
         Debug.Log("Yaw: " + yawInput);
         Debug.Log("Lift Input: " + liftInput);*/
-        InputTimer(timeInterval);
+        InputTimer(inputTimeInterval);
         if (Input.GetKeyDown(KeyCode.W))
         {
             wKeyDown = true;
@@ -169,9 +172,10 @@ public class PlayerController : MonoBehaviour
         {
             sKeyDown = false;
         }
+        //DebugWarning("WKeyDown: " + wKeyDown + " SKeyDown: " + sKeyDown);
         transform.Rotate(rotationAmount * scriptTime * horizontalMotionInput, 0, 0);
         transform.Rotate(0, 0, rotationAmount * scriptTime * AOAInput);
-        transform.Rotate(Vector3.up * yawLimit * scriptTime * yawInput);
+        transform.Rotate(scriptTime * yawInput * yawLimit * Vector3.up);
     }
 
     public void SetScriptTimeInterval(float x)
@@ -180,7 +184,8 @@ public class PlayerController : MonoBehaviour
     }
     void InputTimer(float delay) //This function limits the frames to apply force to the rigidbody in a given time period.
     {
-        if (((sKeyDown || wKeyDown) && !(sKeyDown && wKeyDown)) && fixedScriptTime > timer + delay)
+        //DebugWarning("InputTimer::FixedScriptTime: " + fixedScriptTime + " Timer: " + timer + " Delay: " + delay);
+        if (((sKeyDown || wKeyDown) && !(sKeyDown && wKeyDown)) && fixedScriptTime >= timer + delay)
         {
             if (sKeyDown && liftForce > minLift)
             {
@@ -201,15 +206,14 @@ public class PlayerController : MonoBehaviour
     }
     void CalculateForces()
     {
-        lastActiveFrameVelocity = rb.velocity;
         rb.AddRelativeForce(Vector3.up * liftForce, ForceMode.Force);
     }
     private void OnCollisionEnter(Collision collision)
     {
-        Debug.Log(rb.velocity.x);
+        DebugWarning("Velocity X: " + rb.velocity.x);
         if ((rb.velocity.x > 3 || rb.velocity.x < -3) || (rb.velocity.y > 3 || rb.velocity.y < -3) || (rb.velocity.z > 3 || rb.velocity.z < -3))
         {
-            Debug.Log("Crash");
+            DebugWarning("Crash");
         }
         rb.freezeRotation = false;
 
@@ -225,7 +229,7 @@ public class PlayerController : MonoBehaviour
     }
     private void OnTriggerEnter(Collider other) //This function disassembles the blades from the helicopter on collision with something.
     {
-        Debug.Log("Blade hit");
+        DebugWarning("Blade hit");
         bladeHit = true;
         gameState = GAME.OVER;
         if (childCount == transform.childCount)
@@ -233,8 +237,7 @@ public class PlayerController : MonoBehaviour
             GameObject a = blades.gameObject;
             if (a.name.ToLower() == "blades"/* || a.name.ToLower() == "rotor"*/)
             {
-                Rigidbody crb;
-                if (!a.TryGetComponent<Rigidbody>(out crb))
+                if (!a.TryGetComponent<Rigidbody>(out Rigidbody crb))
                 {
                     crb = a.AddComponent<Rigidbody>();
                 }
@@ -256,5 +259,10 @@ public class PlayerController : MonoBehaviour
             liftBar.SetValue(minLift);
         }
 
+    }
+
+    private void DebugWarning(string msg)
+    {
+        Debug.LogWarning("PlayerController::" + msg);
     }
 }

@@ -398,8 +398,9 @@ MonoBehaviour:
   minLiftMultiplier: 2
   maxLiftMultiplier: 3
   liftIncrement: 0.5
-  timeInterval: 0.3
+  inputTimeInterval: 0.3
   liftBar: {fileID: 0}
+  missionHandler: {fileID: 42876988}
 --- !u!54 &4572197859681945151
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -441,6 +442,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0c71a284f0ad2c54b82602b83c03a58e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  missionTime: 0:40
+  missionTime: 0:5
   SFXhandler: {fileID: 0}
-  musicMilestone: 2000000010000000
+  musicMilestone:
+  - 32
+  - 16
+  - 0

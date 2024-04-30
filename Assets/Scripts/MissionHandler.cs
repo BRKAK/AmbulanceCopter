@@ -26,11 +26,8 @@ public class MissionHandler : MonoBehaviour
         if (musicChanged == 2)
             return;
         double x = musicMilestone[musicChanged];
-        //Debug.LogWarning("song counter: " + musicChanged);
         double counter = x + (1d / 16d);
         counter = Math.Truncate((counter * 100)) / 100;
-        //Debug.Log(Math.Truncate(SFXhandler.SecondsLeftAsFloat() * 100) / 100 <= (counter + .01d) && Math.Truncate(SFXhandler.SecondsLeftAsFloat() * 100) / 100 > (counter - .01d));
-        //Debug.LogWarning(Math.Truncate(SFXhandler.SecondsLeftAsFloat() * 100) / 100 + " : " + counter);
         if (Math.Truncate(SFXhandler.SecondsLeftAsFloat() * 100) / 100 <= counter + .1f && Math.Truncate(SFXhandler.SecondsLeftAsFloat() * 100) / 100 >= counter - .1f)
         {
             Preload();
@@ -45,12 +42,18 @@ public class MissionHandler : MonoBehaviour
     public void Initialize()
     {
         musicChanged = 0;
-        Debug.LogWarning("MissionHandler:Mission Time: " + missionTime);
+        DebugWarning("MissionHandler:Mission Time: " + missionTime);
     }
 
     public void Preload()
     {
         SFXhandler.audioClip[1].LoadAudioData();
         SFXhandler.audioClip[2].LoadAudioData();
+    }
+
+    //DEBUG
+    private void DebugWarning(string msg)
+    {
+        Debug.LogWarning("MissionHandler::" + msg);
     }
 }

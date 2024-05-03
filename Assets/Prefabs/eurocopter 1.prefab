@@ -442,7 +442,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0c71a284f0ad2c54b82602b83c03a58e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  missionTime: 0:5
+  missionTime: 0:40
   SFXhandler: {fileID: 0}
   musicMilestone:
   - 32

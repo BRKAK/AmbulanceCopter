@@ -25,23 +25,21 @@ public class PlayerController : MonoBehaviour
         PLAYING, //playing phase
         RESTART, //reset
         OVER, //state between over and init
-        ERROR //there is a problem with the inputs in editor
+        ERROR, //there is a problem with the inputs in editor
+        HELI_CRASHED //If the heli becomes inoperable
     }
 
     private void Awake()
     {
         SetGameState(GAME.INIT);
         Debug.LogWarning("Game State: " + gameState);
+        Initialize();
     }
 
     // Start is called before the first frame update
     void Start()
     {
-        if (CheckGameState() == GAME.INIT)
-        {
-            SetGameState(GAME.START);
-            Initialize();
-        }
+        SetGameState(GAME.PLAYING);
     }
 
     // Update is called once per frame
@@ -49,7 +47,10 @@ public class PlayerController : MonoBehaviour
     {
         //Debug.Log(CheckGameState());
         if (bladeHit)
-            bladeRotationSpeed = Mathf.Lerp(bladeRotationSpeed, 0, 0.001f);
+        {
+            if(!CheckBladeVelocityForBladeRotation(blades.GetComponent<Rigidbody>()))
+                bladeRotationSpeed = Mathf.Lerp(bladeRotationSpeed, 0, 0.001f);
+        }
         GameStateHandler();
     }
 
@@ -57,21 +58,29 @@ public class PlayerController : MonoBehaviour
     {
         AdjustScriptTime();
         Animate();
-        if (CheckGameState() == GAME.PLAYING)
+        switch (CheckGameState())
         {
-            ReadInput();
-        }
-        else if (CheckGameState() == GAME.OVER)
-        {
-            if (Input.GetKeyDown(KeyCode.R))
-            {
-                SetGameState(GAME.RESTART);
-                ResetGame();
-            }
-        }else if (CheckGameState() == GAME.RESTART)
-        {
-            SceneManager.LoadScene(SceneManager.GetActiveScene().name, LoadSceneMode.Single);
-            Time.timeScale = 1;
+            case GAME.OVER:
+                if (Input.GetKeyDown(KeyCode.R))
+                {
+                    SetGameState(GAME.RESTART);
+                    ResetGame();
+                }
+                Time.timeScale = 0;
+                Debug.LogError("TimeScale: " + Time.timeScale);
+                break;
+            case GAME.ERROR:
+                Time.timeScale = 0;
+                break;
+            case GAME.RESTART:
+                SceneManager.LoadScene(SceneManager.GetActiveScene().name, LoadSceneMode.Single);
+                Time.timeScale = 1;
+                break;
+            case GAME.HELI_CRASHED:
+                break;
+            default:
+                ReadInput();
+                break;
         }
 
     }
@@ -90,7 +99,7 @@ public class PlayerController : MonoBehaviour
         liftForce = minLift;
         SetScriptTimeInterval(1f);
         DebugWarning("Script Time: " + scriptTime);
-        SetGameState(GAME.PLAYING);
+        SetGameState(GAME.START);
     }
 
     public void AdjustScriptTime() //to stop all the motion and physics calculation while not touching the Time.timeScale to display UI changes on frames such as brightness.
@@ -121,22 +130,14 @@ public class PlayerController : MonoBehaviour
         return gameState;
     }
 
-    public void ChangeBladeAttribute(bool flag) //alters the kinematic option depending on the frame(does user see game or UI)
+    public bool CheckBladeVelocityForBladeRotation(Rigidbody r) //After the blades touched any surface, it checks whether the blades are still airborne or not so that animation keeps going like it still has momentum
     {
-        if (blades.name.ToLower() == "blades")
+        if (r.velocity.magnitude < 0.8f && r.angularVelocity.magnitude < 1f)
         {
-            if (blades.TryGetComponent<Rigidbody>(out Rigidbody childRb))
-            {
-                childRb.isKinematic = flag;
-                CheckBladeVelocityForBladeRotation(childRb);
-            }
-        }
-    }
-
-    public void CheckBladeVelocityForBladeRotation(Rigidbody r) //After the blades touched any surface, it checks whether the blades are still airborne or not so that animation keeps going like it still has momentum
-    {
-        if (r.velocity.magnitude != 0 && r.velocity.magnitude < 0.8f)
             bladeRotationSpeed = Mathf.Lerp(bladeRotationSpeed, 0, 0.05f);
+            return true;
+        }
+        return false;
     }
     public void SetGameState(GAME g) //just a gamestate setter function to manipulate the game state in other scripts
     {
@@ -231,34 +232,39 @@ public class PlayerController : MonoBehaviour
     {
         DebugWarning("Blade hit");
         bladeHit = true;
-        gameState = GAME.OVER;
-        if (childCount == transform.childCount)
+        SetGameState(GAME.HELI_CRASHED);
+        if (!blades.TryGetComponent<Rigidbody>(out Rigidbody crb))
         {
-            GameObject a = blades.gameObject;
-            if (a.name.ToLower() == "blades"/* || a.name.ToLower() == "rotor"*/)
-            {
-                if (!a.TryGetComponent<Rigidbody>(out Rigidbody crb))
-                {
-                    crb = a.AddComponent<Rigidbody>();
-                }
-
-                crb.useGravity = true;
-                crb.AddForce(Random.Range(-5, 5), Random.Range(5, 10), Random.Range(-5, 5), ForceMode.Impulse);
-                if (a.GetComponent<MeshCollider>() == null)
-                {
-                    MeshCollider m = a.AddComponent<MeshCollider>();
-                    m.isTrigger = false;
-                    m.convex = true;
-                }
-                else
-                {
-                    a.GetComponent<MeshCollider>().isTrigger = false;
-                }
-                a.transform.SetParent(a.transform);
-            }
-            liftBar.SetValue(minLift);
+            crb = blades.AddComponent<Rigidbody>();
         }
+        
+        crb.useGravity = true;
+        crb.AddForce(Random.Range(-5, 5), Random.Range(5, 10), Random.Range(-5, 5), ForceMode.Impulse);
 
+        if (blades.GetComponent<MeshCollider>() == null)
+        {
+            MeshCollider m = blades.AddComponent<MeshCollider>();
+            m.isTrigger = false;
+            m.convex = true;
+        }
+        else
+        {
+            blades.GetComponent<MeshCollider>().isTrigger = false;
+        }
+        blades.transform.SetParent(blades.transform);
+        liftBar.SetValue(minLift);
+        Debug.Log("Wait 0.1f");
+        CheckBladeVelocityForBladeRotation(crb);
+        StartCoroutine(AnimateCrash());
+        
+
+    }
+
+    private IEnumerator AnimateCrash()
+    {
+        Debug.LogWarning("Coroutine Started");
+        yield return new WaitForSeconds(4);
+        SetGameState(GAME.OVER);
     }
 
     private void DebugWarning(string msg)

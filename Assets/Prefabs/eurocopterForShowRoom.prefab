@@ -95,7 +95,7 @@ GameObject:
   - component: {fileID: 8766497351933042042}
   - component: {fileID: 2490134269849019857}
   m_Layer: 0
-  m_Name: Cylinder.001
+  m_Name: Blades
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -291,7 +291,7 @@ GameObject:
   - component: {fileID: 781151601076745518}
   - component: {fileID: 2548125996628048820}
   m_Layer: 0
-  m_Name: Cylinder
+  m_Name: MiniBlades
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

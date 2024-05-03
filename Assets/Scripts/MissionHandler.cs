@@ -10,7 +10,7 @@ public class MissionHandler : MonoBehaviour
     private int musicChanged = 0;
     public double[] musicMilestone = { 32, 16 }; 
     // Start is called before the first frame update
-    void Start()
+    void Awake()
     {
         Initialize();
     }
@@ -18,15 +18,20 @@ public class MissionHandler : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        //ChangeMusic();
     }
 
     private void FixedUpdate()
     {
+        ChangeMusic();
+    }
+
+    public void ChangeMusic()
+    {
         if (musicChanged == 2)
             return;
         double x = musicMilestone[musicChanged];
-        double counter = x + (1d / 16d);
+        double counter = x + (1f / 16f);
         counter = Math.Truncate((counter * 100)) / 100;
         if (Math.Truncate(SFXhandler.SecondsLeftAsFloat() * 100) / 100 <= counter + .1f && Math.Truncate(SFXhandler.SecondsLeftAsFloat() * 100) / 100 >= counter - .1f)
         {

@@ -3,17 +3,26 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using UnityEngine.Rendering.PostProcessing;
 
 public class MainMenuHandler : MonoBehaviour
 {
+    public GameObject brightness;
     public Camera camera;
     public SettingsMenuHandler settings;
 
     private bool settingsFlag = false;
+    private PostProcessVolume volume;
+    private AutoExposure _ae;
+
+
     // Start is called before the first frame update
     void Start()
     {
-        
+        volume = brightness.GetComponent<PostProcessVolume>();
+        Debug.Log(volume.profile.TryGetSettings(out _ae));
+        _ae.keyValue.value = PlayerPrefs.GetFloat("BrightnessLevel");
+        camera.GetComponent<AudioSource>().volume = PlayerPrefs.GetFloat("AudioLevel");
     }
     private void OnEnable()
     {

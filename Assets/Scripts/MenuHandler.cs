@@ -13,7 +13,7 @@ public class MenuHandler : MonoBehaviour
 
     private bool menuOn = false;
     // Start is called before the first frame update
-    void Start()
+    void Awake()
     {
         uiInterface.SetActive(false);
     }
@@ -21,8 +21,19 @@ public class MenuHandler : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        HeliCrashed();
         ReadInput();
-        //Debug.LogWarning(player == null);
+    }
+
+    private void HeliCrashed()
+    {
+        if(player.CheckGameState() == PlayerController.GAME.HELI_CRASHED)
+        {
+            transform.GetChild(0).gameObject.transform.GetChild(0).gameObject.SetActive(false);
+            Canvas.ForceUpdateCanvases();
+            uiInterface.SetActive(true);
+            menuOn = true;
+        }
     }
 
     private void ReadInput()
@@ -59,7 +70,7 @@ public class MenuHandler : MonoBehaviour
     {
         player.SetGameState(PlayerController.GAME.RESTART);
         missionHandler.Initialize();
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name, LoadSceneMode.Single);
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex, LoadSceneMode.Single);
         DebugWarning("Time.time at restart: " + Time.time);
         Time.timeScale = 1;
     }

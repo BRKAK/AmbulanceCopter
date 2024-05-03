@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Rendering.PostProcessing;
 
 public class SFXHandler : MonoBehaviour
 {
@@ -10,15 +11,18 @@ public class SFXHandler : MonoBehaviour
     public AudioSource audioSource;
     public PlayerController player;
     public RawImage GameOverText;
-    public MenuHandler menuHandler;
-    public MissionHandler missionHandler;//remove later
+    public MissionHandler missionHandler;
+    public GameObject brightness;
 
     private int missionTime = 0, minutes = 0, seconds = 0;
     private Text timerText;
     private string[] MinNSec;
-    private int secondCounter = 0, timeAtLeveLoad = 0;
+    private int secondCounter = 0;
+    private AutoExposure _ae;
+    private PostProcessVolume volume;
+    
     // Start is called before the first frame update
-    void Start()
+    void Awake()
     {
         Initialize();
     }
@@ -35,11 +39,16 @@ public class SFXHandler : MonoBehaviour
 
     public void Initialize()
     {
+        Debug.LogError("Reinitialized!!!");
         timerText = transform.GetComponent<Text>();
         timerText.text = missionHandler.missionTime;
         ValidateTextInput();
         InitializeAudio();
-        timeAtLeveLoad -= (int)Time.time;
+        volume = brightness.GetComponent<PostProcessVolume>();
+        Debug.Log(volume.profile.TryGetSettings(out _ae));
+        _ae.keyValue.value = PlayerPrefs.GetFloat("BrightnessLevel");
+        audioSource.volume = PlayerPrefs.GetFloat("AudioLevel");
+        //timeAtLeveLoad -= (int)Time.deltaTime;
     }
 
     void Main()
@@ -48,7 +57,7 @@ public class SFXHandler : MonoBehaviour
         DisplayGameOverText();
         if (player.CheckGameState() == PlayerController.GAME.PLAYING)
         {
-            secondCounter = (int)(Time.timeSinceLevelLoad) + timeAtLeveLoad;
+            secondCounter = (int)(Time.timeSinceLevelLoad);
             UpdateTimer();
         }
 
@@ -132,16 +141,15 @@ public class SFXHandler : MonoBehaviour
 
     public double SecondsLeftAsFloat()
     {
-        return Math.Truncate((missionTime - Time.fixedTime + timeAtLeveLoad) * 100) / 100;
+        return Math.Truncate((missionTime - Time.timeSinceLevelLoadAsDouble) * 100) / 100;
     }
 
     private void DisplayGameOverText()
     {
         try
         {
-            if (player.CheckGameState() == PlayerController.GAME.OVER)
+            if (player.CheckGameState() == PlayerController.GAME.OVER || player.CheckGameState() == PlayerController.GAME.HELI_CRASHED)
             {
-                Time.timeScale = 0;
                 GameOverText.gameObject.SetActive(true);
                 if (audioSource.isPlaying)
                     audioSource.Stop();
@@ -158,6 +166,7 @@ public class SFXHandler : MonoBehaviour
     {
         audioSource.Stop();
         audioSource.clip = audioClip[index];
+        audioSource.Play();
     }
 
 

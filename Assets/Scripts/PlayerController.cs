@@ -29,6 +29,22 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+<<<<<<< Updated upstream
+=======
+        //Debug.Log(CheckGameState());
+        if (bladeHit)
+        {
+            if(!CheckBladeVelocityForBladeRotation(blades.GetComponent<Rigidbody>()))
+                bladeRotationSpeed = Mathf.Lerp(bladeRotationSpeed, 0, 0.001f);
+        }
+        GameStateHandler();
+    }
+
+    public void GameStateHandler()
+    {
+        if (!missionHandler.givePlayerControls)
+            return;
+>>>>>>> Stashed changes
         AdjustScriptTime();
         if (bladeHit)
             bladeRotationSpeed = Mathf.Lerp(bladeRotationSpeed, 0, 0.001f);

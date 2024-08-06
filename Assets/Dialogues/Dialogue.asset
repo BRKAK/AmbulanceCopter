@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6538093808ca3e45919545b32b37594, type: 3}
+  m_Name: Dialogue
+  m_EditorClassIdentifier: 
+  dialogue:
+  - "Welcome! \nThis game is fairly easy to play, there is no need to worry.\nPress
+    spacebar to continue..."
+  - 'First step is to teach the UI elements that  will help you complete missions.
+
+    Press
+    spacebar to continue...'
+  - 'As you can see in the upper-right corner there is  a clock that indicates your
+    time left before the mission fails. Try not to panic :)
+
+    Press spacebar to
+    continue...'
+  - 'In the lower-right corner lift bar is shown. This bar indicates the lift force
+    you are currently applying.
+
+    Press spacebar to continue...'
+  - 'Now let''s talk about the controls! The longer you hold W or S the more you
+    are going to change the lift force.
+
+    Press spacebar to continue...'
+  - 'To yaw the helicopter press or hold A or D keys.
+
+    Press spacebar to continue...'
+  - 'Tilting the aircraft is done by the arrow keys.
+
+    Press spacebar to continue...'
+  - In case if you missed, you can always pause, restart or close the game by pressing
+    Esc. Now you are going to fly this helicopter. Press spacebar when ready...

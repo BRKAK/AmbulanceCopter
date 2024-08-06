@@ -76,6 +76,15 @@ public class MenuHandler : MonoBehaviour
         player.SetScriptTimeInterval(0.5f);
         StartCoroutine(IncreaseTimeScale(timeScaleDelay));
     }
+<<<<<<< Updated upstream
+=======
+
+    public void OnMainMenuBtnClicked()
+    {
+        SceneManager.LoadScene(0, LoadSceneMode.Single);
+    }
+
+>>>>>>> Stashed changes
     private IEnumerator IncreaseTimeScale(float delay)
     {
         yield return new WaitForSeconds(delay);
